@@ -85,7 +85,7 @@ Dostawca prognozy jest odizolowany w `src/data/openMeteo.ts`. Zamiana na płatne
 
 ## Ograniczenia i kolejne kroki
 
-1. **Licencja Open-Meteo:** darmowe API wolno używać tylko niekomercyjnie. Przed startem z reklamami lub abonamentem potrzebny płatny plan albo inne źródło.
+1. **Licencja i limity Open-Meteo:** darmowe API wolno używać tylko niekomercyjnie. Limity są liczone na adres IP, a zapytanie o wiele punktów liczy się jak wiele zapytań (mapa Polski to ok. 200 punktów). Każdy użytkownik odpytuje API ze swojej przeglądarki, więc limit dotyczy pojedynczego użytkownika. Przed startem z reklamami lub abonamentem potrzebny jest płatny plan albo inne źródło, a przy płatnym planie także własny serwer pośredniczący z cache, żeby klucz API nie trafiał do przeglądarki.
 2. **Routing:** publiczny serwer OSRM jest demonstracyjny, bez gwarancji. Do produkcji potrzebna własna instancja (OSRM/Valhalla) albo płatne API.
 3. **Powiadomienia:** sprawdzanie w tle działa przez Periodic Background Sync (Chrome/Edge, zainstalowana aplikacja). Niezawodne powiadomienia na iOS i we wszystkich przeglądarkach wymagają **serwera Web Push** (kolejny etap).
 4. **Temperatura nawierzchni:** największy skok jakości dałyby pomiary GDDKiA lub komercyjny model nawierzchni.

@@ -96,5 +96,63 @@ def main(out):
     json.dump({"type": "Feature", "properties": {}, "geometry": rnd(pl_geom)}, open(out.replace("powiaty", "polska"), "w"), separators=(",", ":"))
     print("GOTOWE", len(features), file=sys.stderr)
 
+def refine(out, step=0.02):
+    """Drugi przebieg: małe miasta na prawach powiatu, które ominęła rzadka siatka.
+    Pyta tylko o punkty w "dziurach" (punkt i 4 sąsiedzi poza znanymi powiatami)."""
+    features = json.load(open(out))["features"]
+    pl = json.load(open(out.replace("powiaty", "polska")))["geometry"]
+    for f in features:
+        g = f["geometry"]
+        rings = [g["coordinates"][0]] if g["type"] == "Polygon" else [p[0] for p in g["coordinates"]]
+        xs = [c[0] for r in rings for c in r]; ys = [c[1] for r in rings for c in r]
+        f["_bb"] = (min(xs), min(ys), max(xs), max(ys))
+
+    def covered(x, y):
+        return any(f["_bb"][0] <= x <= f["_bb"][2] and f["_bb"][1] <= y <= f["_bb"][3]
+                   and geom_contains(f["geometry"], x, y) for f in features)
+
+    holes = []
+    y = 49.0
+    while y <= 54.9:
+        x = 14.1
+        while x <= 24.2:
+            if geom_contains(pl, x, y) and not covered(x, y):
+                d = step
+                if all(not covered(x + dx, y + dy) for dx, dy in ((d, 0), (-d, 0), (0, d), (0, -d))):
+                    holes.append((x, y))
+            x += step
+        y += step
+    print(f"{len(holes)} punktów w dziurach", file=sys.stderr)
+    added = 0
+    for x, y in holes:
+        if covered(x, y):
+            continue
+        rev = get("reverse", {"lat": y, "lon": x, "zoom": 8, "format": "jsonv2", "extratags": 1,
+                              "polygon_geojson": 1, "polygon_threshold": 0.003})
+        if not rev or rev.get("osm_type") != "relation":
+            continue
+        terc = (rev.get("extratags") or {}).get("teryt:terc", "")
+        geom = rev.get("geojson")
+        if len(terc) != 4 or not geom or geom.get("type") not in ("Polygon", "MultiPolygon"):
+            continue
+        if any(f["properties"]["t"] == terc for f in features):
+            continue
+        f = {"type": "Feature", "properties": {"t": terc, "n": rev.get("name", "")}, "geometry": rnd(geom)}
+        g = f["geometry"]
+        rings = [g["coordinates"][0]] if g["type"] == "Polygon" else [p[0] for p in g["coordinates"]]
+        xs = [c[0] for r in rings for c in r]; ys = [c[1] for r in rings for c in r]
+        f["_bb"] = (min(xs), min(ys), max(xs), max(ys))
+        features.append(f)
+        added += 1
+        print(f"+ {terc} {f['properties']['n']} (razem {len(features)})", file=sys.stderr)
+    for f in features:
+        f.pop("_bb", None)
+    json.dump({"type": "FeatureCollection", "features": features}, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
+    print("UZUPEŁNIONO", added, "razem", len(features), file=sys.stderr)
+
+
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if "--refine" in sys.argv:
+        refine(sys.argv[1])
+    else:
+        main(sys.argv[1])

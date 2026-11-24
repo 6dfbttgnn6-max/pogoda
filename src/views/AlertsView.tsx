@@ -4,7 +4,7 @@ import type { ImgwWarning } from '../types';
 import { DAY_NAMES, type Watch } from '../alerts/store';
 import { checkWatches, nextDeparture, type CheckResult } from '../alerts/check';
 import { warningKind, isActive, LEVEL_LABEL } from '../risk/engine';
-import { formatWhen } from '../lib/time';
+import { formatTime, formatWhen, relativeDay } from '../lib/time';
 import { Badge } from '../components/ui';
 import { WarningCard } from '../components/WarningCard';
 import type { UserLocation } from '../lib/location';
@@ -132,7 +132,7 @@ export function AlertsView({ watches, setWatches, warnings, loc }: Props) {
             {r && (
               <div className={`note lv-${r.level}`} style={{ marginTop: 10, background: 'var(--cs)', color: 'var(--text)' }}>
                 <Badge level={r.level} short />
-                <div>{r.level === 0 ? 'Dobre warunki w czasie przejazdu.' : `${r.headline}, ok. ${formatWhen(r.worstAt)}.`}</div>
+                <div>{r.level === 0 ? 'Dobre warunki w czasie przejazdu.' : `${r.headline}: ${relativeDay(r.worstAt)} ok. ${formatTime(r.worstAt)}.`}</div>
               </div>
             )}
           </article>

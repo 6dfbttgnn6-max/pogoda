@@ -261,7 +261,7 @@ function RouteResult({ w, route, departAt, isNow, alts, alt, setAlt, opts, best,
             <div className="hero-loc">Wyjazd {isNow ? 'teraz' : formatWhen(departAt)}</div>
             <h2>{w.max === 0 ? 'Dobre warunki na całej trasie' : LEVEL_LABEL[w.max]}</h2>
             <p>{w.max === 0 ? 'Nie przewidujemy oblodzenia ani intensywnych opadów na trasie.' :
-              `${worst.risk.headline} ok. ${Math.round(worst.sample.distKm)} km od startu (${formatTime(worst.at)})${worst.area ? `, ${worst.area}` : ''}.`}</p>
+              `${worst.risk.headline} ${whereOnRoute(worst.sample.distKm, route.distanceKm)} (${formatTime(worst.at)})${worst.area ? `, ${worst.area}` : ''}.`}</p>
           </div>
         </div>
         <div className="metrics">
@@ -340,4 +340,10 @@ function RouteResult({ w, route, departAt, isNow, alts, alt, setAlt, opts, best,
       <div className="note"><Info size={16} /><div>Prognoza liczona dla punktów co ok. {Math.round(w.samples[1]?.sample.distKm ?? 10)} km, na przewidywaną godzinę przejazdu. Czas jazdy nie uwzględnia korków ani wolniejszej jazdy w trudnych warunkach.</div></div>
     </>
   );
+}
+
+function whereOnRoute(km: number, total: number): string {
+  if (km < 3) return 'już na starcie';
+  if (total - km < 3) return 'u celu';
+  return `ok. ${Math.round(km)} km od startu`;
 }

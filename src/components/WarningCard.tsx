@@ -9,7 +9,7 @@ export function WarningCard({ w, activeNow, showRegions }: { w: ImgwWarning; act
   const regions = showRegions ? voivodeshipsOf(w) : [];
   return (
     <article className={`card warning lv-${lv}`}>
-      <h4>{w.event}<span className={`badge lv-${lv}`}>{w.level}° stopień</span>{activeNow && <span className="xs">obowiązuje teraz</span>}</h4>
+      <h4>{w.event}<span className={`badge lv-${lv}`}>stopień {w.level}</span>{activeNow && <span className="xs">obowiązuje teraz</span>}</h4>
       <div className="small muted">{formatWhen(w.from)} – {formatWhen(w.to)} · prawdopodobieństwo {w.probability}%</div>
       {regions.length > 0 && <div className="small" style={{ marginTop: 6 }}>Województwa: {regions.join(', ')} · {w.teryt.length} {w.teryt.length === 1 ? 'powiat' : 'powiatów'}</div>}
       {w.text && (
