@@ -145,6 +145,8 @@ def refine(out, step=0.02):
         features.append(f)
         added += 1
         print(f"+ {terc} {f['properties']['n']} (razem {len(features)})", file=sys.stderr)
+        json.dump({"type": "FeatureCollection", "features": [{k: v for k, v in x.items() if k != "_bb"} for x in features]},
+                  open(out, "w"), ensure_ascii=False, separators=(",", ":"))
     for f in features:
         f.pop("_bb", None)
     json.dump({"type": "FeatureCollection", "features": features}, open(out, "w"), ensure_ascii=False, separators=(",", ":"))

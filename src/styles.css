@@ -360,7 +360,7 @@ button { cursor: pointer; }
     max-height: var(--sheet-h, 52%); background: var(--bg); border-top-left-radius: 22px; border-top-right-radius: 22px;
     box-shadow: 0 -10px 40px rgba(0,0,0,.25); padding-top: 22px; border-top: 1px solid var(--line);
   }
-  .app[data-view='route'] .sheet-handle, .app[data-view='map'] .sheet-handle { display: block; position: sticky; top: -22px; margin: -22px -16px 0; height: 26px; width: calc(100% + 32px); cursor: grab; }
+  .app[data-view='route'] .sheet-handle, .app[data-view='map'] .sheet-handle { display: block; position: sticky; top: -22px; margin: -22px -16px 8px; height: 30px; width: calc(100% + 32px); cursor: grab; background: var(--bg); border-radius: 22px 22px 0 0; }
   .sheet-handle::before { content: ''; position: absolute; top: 9px; left: 50%; width: 40px; height: 5px; margin-left: -20px; border-radius: 3px; background: var(--line-strong); }
   .app[data-view='map'] .panel-body { max-height: 40%; }
   .app[data-sheet='min'] .panel-body { max-height: 30% !important; }
@@ -383,3 +383,20 @@ button { cursor: pointer; }
 @media (max-width: 380px) {
   .metric .v { font-size: 19px; }
 }
+
+/* Wskazówki przed wyjazdem */
+.advice { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.advice:first-child { border-top: 0; padding-top: 2px; }
+.advice-check {
+  width: 22px; height: 22px; flex: none; margin-top: 1px; border-radius: 7px; border: 2px solid var(--line-strong);
+  background: transparent; display: grid; place-items: center; color: white; padding: 0;
+}
+.advice-check[aria-pressed='true'] { background: var(--r0); border-color: var(--r0); }
+.advice[data-done] .advice-title, .advice[data-done] .advice-text { opacity: .5; }
+.advice[data-done] .advice-title { text-decoration: line-through; }
+.advice-title { display: flex; align-items: center; gap: 7px; font-weight: 650; font-size: 14px; }
+.advice-ico { color: var(--c); flex: none; }
+.lv-0 .advice-ico { color: var(--text-3); }
+.advice-text { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+.advice-law { display: flex; gap: 7px; align-items: flex-start; margin-top: 7px; padding: 7px 9px; border-radius: 9px; background: var(--accent-soft); color: var(--text); font-size: 12.5px; }
+.advice-law svg { flex: none; margin-top: 2px; color: var(--accent); }

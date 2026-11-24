@@ -3,7 +3,9 @@ import * as maplibregl from 'maplibre-gl';
 import { ArrowDownUp, BellPlus, Check, Clock, Crosshair, Flag, Info, Loader2, RefreshCw, Route as RouteIcon, Sparkles } from 'lucide-react';
 import type { ImgwWarning, LngLat, Place, RiskLevel } from '../types';
 import { fetchRoutes, type Route } from '../data/routing';
-import { fetchForecast } from '../data/openMeteo';
+import { fetchForecast, hourIndex } from '../data/openMeteo';
+import { routeAdvice, routeFacts } from '../risk/advice';
+import { AdviceCard } from '../components/AdviceCard';
 import { sampleRoute, type RouteSample } from '../lib/geo';
 import { loadPowiaty, findPowiat } from '../data/powiaty';
 import { bestDeparture, coloredSegments, departureOptions, routeWeather, stretches, type Ctx, type RouteWeather } from '../risk/route';
@@ -206,7 +208,7 @@ export function RouteView({ loc, onLocate, warnings, active, onSaveWatch }: Prop
       {!busy && !error && sel && w && (
         <RouteResult
           w={w} route={sel.route} departAt={departAt} isNow={depart == null}
-          alts={routesCtx.map((r, k) => ({ route: r.route, w: weathers[k] }))} alt={alt} setAlt={setAlt}
+          alts={routesCtx.map((r, k) => ({ route: r.route, w: weathers[k] }))} alt={alt} setAlt={setAlt} ctx={sel.ctx}
           opts={opts} best={best} onPickDepart={(at) => setDepart(Math.abs(at - Date.now()) < 60_000 ? null : at)}
           warnings={warnings}
         />
@@ -236,7 +238,8 @@ export function RouteView({ loc, onLocate, warnings, active, onSaveWatch }: Prop
   );
 }
 
-function RouteResult({ w, route, departAt, isNow, alts, alt, setAlt, opts, best, onPickDepart, warnings }: {
+function RouteResult({ w, route, departAt, isNow, alts, alt, setAlt, opts, best, onPickDepart, warnings, ctx }: {
+  ctx: Ctx;
   w: RouteWeather; route: Route; departAt: number; isNow: boolean;
   alts: Array<{ route: Route; w: RouteWeather }>; alt: number; setAlt: (k: number) => void;
   opts: ReturnType<typeof departureOptions>; best: ReturnType<typeof bestDeparture>;
@@ -250,6 +253,10 @@ function RouteResult({ w, route, departAt, isNow, alts, alt, setAlt, opts, best,
   const routeWarnings = warnings.filter((x) => x.to > departAt && x.from < arrive && x.teryt.some((t) => teryts.has(t)));
   const currentOpt = opts.find((o) => Math.abs(o.at - departAt) < 60_000);
   const betterLater = best && currentOpt && best.max < currentOpt.max;
+  const advice = routeAdvice(routeFacts(w, {
+    durationSec: route.durationSec, distanceKm: route.distanceKm,
+    hourAt: (k) => { const hs = ctx.forecasts[k]?.hours; return hs?.length ? hs[hourIndex(hs, w.samples[k].at)] : null; },
+  }));
 
   return (
     <>
@@ -277,6 +284,9 @@ function RouteResult({ w, route, departAt, isNow, alts, alt, setAlt, opts, best,
           <div><b style={{ color: 'var(--text)' }}>Lepiej wyjechać {relativeDay(best.at)} o {formatTime(best.at)}</b><br />Warunki: {LEVEL_LABEL[best.max].toLowerCase()} zamiast „{LEVEL_LABEL[currentOpt!.max].toLowerCase()}”. Kliknij, aby sprawdzić.</div>
         </button>
       )}
+
+      <div className="section-title"><span>Przed wyjazdem</span><span className="xs" style={{ textTransform: 'none', letterSpacing: 0 }}>{advice.length} {advice.length === 1 ? 'wskazówka' : advice.length < 5 ? 'wskazówki' : 'wskazówek'}</span></div>
+      <AdviceCard items={advice} />
 
       {alts.length > 1 && (
         <>
