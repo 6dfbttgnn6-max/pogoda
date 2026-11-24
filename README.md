@@ -10,6 +10,7 @@ Aplikacja pogodowa dla kierowców w Polsce (PWA): ryzyko **gołoledzi i oblodzen
 |---|---|
 | **Teraz** | Ocena warunków w miejscu użytkownika (GPS lub wyszukiwarka): poziom ryzyka, temperatura powietrza i szacowana temperatura nawierzchni, lista zagrożeń, oś 48 h, kolejne dni, ostrzeżenia IMGW dla powiatu. |
 | **Trasa** | Trasa A→B (z wariantami), prognoza w punktach co ok. 8–15 km **na przewidywaną godzinę przejazdu**, kolorowanie odcinków na mapie, profil temperatury, lista odcinków z zagrożeniami, ostrzeżenia IMGW na trasie i **najlepsza godzina wyjazdu** w ciągu 12 h. |
+| **Przed wyjazdem** | Lista kontrolna po wyznaczeniu trasy, zależna od warunków w chwili przejazdu: łańcuchy (z informacją o znaku C-18), odśnieżanie auta, zimowy płyn do spryskiwaczy, opony, aquaplaning, mgła i światła przeciwmgłowe, wiatr, mróz, zapas czasu. Treści autorskie (`src/risk/advice.ts`), przepisy podane ogólnie, bez charakteru porady prawnej. |
 | **Mapa** | Mapa ryzyka dla całej Polski (interpolacja z ok. 200 punktów), warstwy: ryzyko / temperatura nawierzchni / śnieg, suwak czasu 0–36 h, powiaty z aktywnymi ostrzeżeniami IMGW. |
 | **Alerty** | Zapisane trasy i miejsca z godziną wyjazdu i dniami tygodnia. Powiadomienie przed wyjazdem, gdy ryzyko przekroczy wybrany próg. |
 
