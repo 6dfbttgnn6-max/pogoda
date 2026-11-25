@@ -61,6 +61,13 @@ npm run build      # wersja produkcyjna w dist/
 
 Tryb demonstracyjny (syntetyczne dane pogodowe, oznaczony w interfejsie): dodaj `?demo` do adresu.
 
+### Publikacja
+
+Aplikacja jest statyczna (bez własnego serwera), więc można ją hostować na dowolnym hostingu plików przez HTTPS. HTTPS jest wymagany do lokalizacji GPS, service workera i powiadomień.
+
+- **Ścieżka:** `BASE=/pogoda/ npm run build` buduje wersję pod podkatalog. Domyślnie budowana jest wersja pod korzeń domeny.
+- **GitHub Pages:** workflow `.github/workflows/pages.yml` publikuje po scaleniu do `main` albo po ręcznym uruchomieniu. Wcześniej trzeba jednorazowo ustawić *Settings → Pages → Source: GitHub Actions*. Dla repozytorium prywatnego Pages wymaga płatnego planu GitHub.
+
 Dane statyczne:
 
 ```bash

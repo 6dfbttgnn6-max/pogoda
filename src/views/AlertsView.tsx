@@ -57,7 +57,7 @@ export function AlertsView({ watches, setWatches, warnings, loc }: Props) {
     setPerm(p);
     if (p === 'granted') {
       const reg = await navigator.serviceWorker.ready;
-      reg.showNotification('Powiadomienia włączone', { body: 'Ostrzeżemy Cię przed wyjazdem, gdy na trasie będzie ślisko.', icon: '/icons/icon-192.png', badge: '/icons/badge-72.png', tag: 'pd-test' });
+      reg.showNotification('Powiadomienia włączone', { body: 'Ostrzeżemy Cię przed wyjazdem, gdy na trasie będzie ślisko.', icon: `${import.meta.env.BASE_URL}icons/icon-192.png`, badge: `${import.meta.env.BASE_URL}icons/badge-72.png`, tag: 'pd-test' });
     }
   };
 

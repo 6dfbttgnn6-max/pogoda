@@ -14,7 +14,7 @@ export async function runChecks(reg: ServiceWorkerRegistration): Promise<number>
     const stamp = dayStamp(r.departAt);
     if (r.level < r.watch.threshold || r.watch.lastNotified === stamp) continue;
     const { title, body } = notificationText(r);
-    await reg.showNotification(title, { body, tag: `pd-${r.watch.id}`, icon: '/icons/icon-192.png', badge: '/icons/badge-72.png', data: { url: '/?view=alerts' } });
+    await reg.showNotification(title, { body, tag: `pd-${r.watch.id}`, icon: `${import.meta.env.BASE_URL}icons/icon-192.png`, badge: `${import.meta.env.BASE_URL}icons/badge-72.png`, data: { url: `${import.meta.env.BASE_URL}?view=alerts` } });
     r.watch.lastNotified = stamp;
     sent++;
   }

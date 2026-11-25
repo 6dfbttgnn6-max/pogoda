@@ -22,7 +22,9 @@ interface Props {
 }
 
 export function NowView({ loc, locStatus, onLocate, onPick, warnings, active }: Props) {
-  const fc = useAsync((s) => fetchForecast([{ lat: loc.lat, lon: loc.lon }], { days: 3, signal: s }).then((r) => r[0]), [loc.lat, loc.lon]);
+  // Przy pierwszym uruchomieniu czekamy na GPS, zamiast pobierać prognozę dla domyślnej Warszawy (oszczędza limit zapytań).
+  const waitingForGps = loc.source === 'default' && locStatus === 'locating';
+  const fc = useAsync((s) => (waitingForGps ? new Promise<never>(() => {}) : fetchForecast([{ lat: loc.lat, lon: loc.lon }], { days: 3, signal: s }).then((r) => r[0])), [loc.lat, loc.lon, waitingForGps]);
   const [sel, setSel] = useState<number | null>(null);
   useEffect(() => setSel(null), [loc.lat, loc.lon]);
 
@@ -83,9 +85,13 @@ export function NowView({ loc, locStatus, onLocate, onPick, warnings, active }: 
   // Najgorszy moment w ciągu najbliższych 12 h
   let worst = now;
   for (let k = now; k < Math.min(hours.length, now + 13); k++) if (risks[k].level > risks[worst].level) worst = k;
+  // Kiedy warunki wrócą do dobrych (w ciągu 24 h)
+  let better = -1;
+  for (let k = now + 1; k < Math.min(hours.length, now + 25); k++) if (risks[k].level === 0) { better = k; break; }
   const upcoming = risks[worst].level > risks[now].level
     ? `Pogorszenie ${relativeDay(hours[worst].time)} ok. ${formatTime(hours[worst].time)}. ${risks[worst].headline}.`
-    : risks[now].level === 0 ? 'W ciągu 12 godzin bez istotnych zagrożeń na drodze.' : r.hazards[0]?.detail;
+    : risks[now].level === 0 ? 'W ciągu 12 godzin bez istotnych zagrożeń na drodze.'
+    : `${r.headline}. ${better > 0 ? `Poprawa ${relativeDay(hours[better].time)} ok. ${formatTime(hours[better].time)}.` : 'Trudne warunki utrzymają się przez najbliższą dobę.'}`;
 
   const timeline = hours.slice(now, now + 48).map((x, k) => ({ x, r: risks[now + k], idx: now + k }));
   const days = groupDays(hours, risks, now);

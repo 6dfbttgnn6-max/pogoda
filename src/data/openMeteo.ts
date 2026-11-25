@@ -91,13 +91,21 @@ export async function fetchForecast(
     wind_speed_unit: 'kmh',
   });
 
-  let res: Response;
-  try {
-    res = await fetch(`${ENDPOINT}?${params}`, { signal });
-  } catch (e) {
-    if ((e as Error).name === 'AbortError') throw e;
-    throw new ForecastError('Brak połączenia z serwerem prognoz. Sprawdź internet.');
+  let res: Response | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      res = await fetch(`${ENDPOINT}?${params}`, { signal });
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') throw e;
+      throw new ForecastError('Brak połączenia z serwerem prognoz. Sprawdź internet.');
+    }
+    if (res.status !== 429) break;
+    const reason = await res.clone().text().catch(() => '');
+    if (/daily/i.test(reason)) throw new ForecastError('Wyczerpano dzienny limit zapytań do serwera prognoz dla Twojej sieci. Spróbuj później.');
+    // Limit minutowy/godzinowy: jedna próba ponownie po krótkiej przerwie
+    if (attempt === 0) await new Promise((r) => setTimeout(r, 4000));
   }
+  if (!res) throw new ForecastError('Brak odpowiedzi serwera prognoz.');
   if (res.status === 429) throw new ForecastError('Przekroczono limit zapytań do serwera prognoz. Spróbuj za chwilę.');
   if (!res.ok) throw new ForecastError(`Serwer prognoz zwrócił błąd (${res.status}).`);
   const json = (await res.json()) as Raw | Raw[];

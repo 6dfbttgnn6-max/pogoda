@@ -14,7 +14,7 @@ import { useStored } from '../lib/store';
 
 type Mode = 'risk' | 'surface' | 'snow';
 const BOUNDS: [number, number, number, number] = [13.9, 48.9, 24.3, 55.0];
-const STEP = 0.4;
+const STEP = 0.5; // ok. 130 punktów w Polsce: kompromis między szczegółowością a limitem zapytań
 
 type Outline = { type: 'Polygon'; coordinates: number[][][] } | { type: 'MultiPolygon'; coordinates: number[][][][] };
 
@@ -39,6 +39,7 @@ export function MapView({ warnings, active }: { warnings: ImgwWarning[]; active:
   const [offset, setOffset] = useState(0); // godziny od teraz
   const [grid, setGrid] = useState<Grid | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [partial, setPartial] = useState(false);
   const [rev, setRev] = useState(0);
   const { dark } = useMap();
 
@@ -62,10 +63,17 @@ export function MapView({ warnings, active }: { warnings: ImgwWarning[]; active:
       }
       const chunks: Array<typeof points> = [];
       for (let k = 0; k < points.length; k += 90) chunks.push(points.slice(k, k + 90));
-      const parts = await Promise.all(chunks.map((c) => fetchForecast(c, { days: 3, signal: ac.signal })));
-      const forecasts = parts.flat();
+      // Paczki niezależnie: jeśli część się nie uda, pokazujemy resztę kraju.
+      const settled = await Promise.allSettled(chunks.map((c) => fetchForecast(c, { days: 3, signal: ac.signal })));
+      const okPoints: typeof points = [];
+      const forecasts: PointForecast[] = [];
+      settled.forEach((s, k) => { if (s.status === 'fulfilled') { okPoints.push(...chunks[k]); forecasts.push(...s.value); } });
+      if (!forecasts.length) {
+        const first = settled.find((s) => s.status === 'rejected') as PromiseRejectedResult | undefined;
+        throw first?.reason ?? new Error('Brak danych');
+      }
       const levels = forecasts.map((f) => assessSeries(f.hours).map((r) => r.level));
-      if (!ac.signal.aborted) setGrid({ points, forecasts, levels, outline });
+      if (!ac.signal.aborted) { setGrid({ points: okPoints, forecasts, levels, outline }); setPartial(okPoints.length < points.length); }
     })().catch((e: Error) => { if (e.name !== 'AbortError') setError(e.message); });
     return () => ac.abort();
   }, [wanted, rev]);
@@ -202,6 +210,7 @@ export function MapView({ warnings, active }: { warnings: ImgwWarning[]; active:
             <button className="btn" onClick={() => setRev((r) => r + 1)}><RefreshCw size={16} /> Spróbuj ponownie</button>
           </>
         )}
+        {partial && <div className="note"><Info size={16} /> Część punktów prognozy jest chwilowo niedostępna. Mapa pokazuje pozostałe regiony.</div>}
         {summary && (
           <div className="card">
             <div className="risk-strip" style={{ height: 10 }}>

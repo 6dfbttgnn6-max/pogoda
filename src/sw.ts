@@ -17,7 +17,7 @@ registerRoute(({ url }) => url.hostname === 'tiles.openfreemap.org',
 // Prognozy: zawsze świeże, a bez sieci ostatnia znana wersja
 registerRoute(({ url }) => url.hostname === 'api.open-meteo.com' || url.hostname === 'danepubliczne.imgw.pl',
   new NetworkFirst({ cacheName: 'weather', networkTimeoutSeconds: 8, plugins: [new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 6 * 3600 })] }));
-registerRoute(({ url }) => url.pathname.startsWith('/data/'),
+registerRoute(({ url }) => url.pathname.startsWith(`${import.meta.env.BASE_URL}data/`),
   new StaleWhileRevalidate({ cacheName: 'static-data' }));
 
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
@@ -30,7 +30,7 @@ self.addEventListener('periodicsync', (e: Event) => {
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || '/';
+  const url = (e.notification.data && e.notification.data.url) || import.meta.env.BASE_URL;
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const c = all.find((x) => 'focus' in x) as WindowClient | undefined;

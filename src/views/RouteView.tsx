@@ -58,7 +58,7 @@ export function RouteView({ loc, onLocate, warnings, active, onSaveWatch }: Prop
       const routes = (await fetchRoutes([start.lon, start.lat], [to.lon, to.lat], ac.signal)).slice(0, 3);
       const pw = await loadPowiaty();
       const out = await Promise.all(routes.map(async (route) => {
-        const step = Math.max(8, route.distanceKm / 40);
+        const step = Math.max(10, route.distanceKm / 30); // maks. ok. 31 punktów na wariant
         const samples = sampleRoute(route.coords, route.segDurations, step);
         const forecasts = await fetchForecast(samples.map((s) => ({ lat: s.at[1], lon: s.at[0] })), { days: 3, signal: ac.signal });
         const areas = samples.map((s) => {
